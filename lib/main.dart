@@ -1,3 +1,5 @@
+import 'package:e_learner/constants/string_const.dart';
+import 'package:e_learner/presentation/screens/welcome_screen.dart';
 import 'package:flutter/material.dart';
 
 void main() {
@@ -11,11 +13,11 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'ELearning',
+      title: StringConst.appTitle,
       theme: ThemeData(
-        colorScheme: .fromSeed(seedColor: Colors.deepPurple),
+        brightness: .dark
       ),
-      home: Scaffold(body: Center(child: Text("E Learning mobile app"),),)
+      home: WelcomeScreen()
     );
   }
 }
