@@ -1,5 +1,6 @@
 import 'package:e_learner/constants/string_const.dart';
-import 'package:e_learner/presentation/screens/welcome_screen.dart';
+import 'package:e_learner/core/app_colors.dart';
+import 'package:e_learner/core/app_textstyles.dart';
 import 'package:e_learner/router/router.dart';
 import 'package:flutter/material.dart';
 
@@ -10,17 +11,40 @@ void main() {
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
-  // This widget is the root of your application.
   @override
   Widget build(BuildContext context) {
     return MaterialApp.router(
       title: StringConst.appTitle,
       theme: ThemeData(
-        brightness: .dark
+        brightness: .dark,
+        fontFamily: 'Urbanist',
+        scaffoldBackgroundColor: AppColors.blackColor,
+        colorScheme: .dark(
+          primary: AppColors.primaryColor,
+          surface: AppColors.surfaceColor,
+          onPrimary: AppColors.blackColor,
+          onSurface: AppColors.whiteColor,
+        ),
+        textTheme: const TextTheme(
+          displayLarge: AppTextStyles.displayLarge,
+          headlineLarge: AppTextStyles.headlineLarge,
+          headlineMedium: AppTextStyles.headlineMedium,
+          titleLarge: AppTextStyles.titleLarge,
+          titleMedium: AppTextStyles.titleMedium,
+          bodyLarge: AppTextStyles.bodyLarge,
+          bodyMedium: AppTextStyles.bodyMedium,
+          bodySmall: AppTextStyles.bodySmall,
+          labelLarge: AppTextStyles.labelLarge,
+          labelMedium: AppTextStyles.labelMedium,
+        ),
+        appBarTheme: const AppBarTheme(
+          backgroundColor: AppColors.blackColor,
+          foregroundColor: AppColors.whiteColor,
+          elevation: 0,
+        ),
       ),
       routerConfig: router,
       builder: (ctx, child) => child!,
     );
   }
 }
-
