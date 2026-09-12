@@ -19,4 +19,5 @@ class StringConst {
   static const profileTab = 'Profile';
   static const homeTab = 'Home';
   static const comingSoon = 'Coming soon';
+  static const courseNotFound = 'Course not found';
 }
