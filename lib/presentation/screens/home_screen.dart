@@ -17,15 +17,36 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> {
+class _HomeScreenState extends State<HomeScreen> with SingleTickerProviderStateMixin {
   CourseStatus _selectedStatus = .inProgress;
   String _query = '';
+  late final AnimationController _controller;
 
   List<Course> get _filteredCourses {
     final byStatus = AppData.coursesByStatus(_selectedStatus);
     if (_query.trim().isEmpty) return byStatus;
     final q = _query.trim().toLowerCase();
     return byStatus.where((c) => c.title.toLowerCase().contains(q) || c.provider.toLowerCase().contains(q)).toList();
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (MediaQuery.disableAnimationsOf(context)) {
+        _controller.value = 1;
+        return;
+      }
+      _controller.forward();
+    });
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
   }
 
   @override
@@ -39,19 +60,16 @@ class _HomeScreenState extends State<HomeScreen> {
             spacing: 20,
             children: [
               const SizedBox(height: 4),
-              _buildHeader(),
-              _buildSearchField(),
+              _buildEntrance(begin: 0, end: 0.25, child: _buildHeader()),
+              _buildEntrance(begin: 0.1, end: 0.35, slide: 16, child: _buildSearchField()),
               Expanded(
                 child: ListView(
                   children: [
-                    _buildPromoBanner(),
+                    _buildEntrance(begin: 0.2, end: 0.5, slide: 20, child: _buildPromoBanner()),
                     const SizedBox(height: 20),
-                    _buildStatusTabs(),
+                    _buildEntrance(begin: 0.35, end: 0.6, slide: 12, child: _buildStatusTabs()),
                     const SizedBox(height: 16),
-                    ..._filteredCourses.map((course) => Padding(
-                          padding: .only(bottom: 12),
-                          child: _buildCourseCard(course),
-                        )),
+                    _buildEntrance(begin: 0.45, end: 0.85, slide: 16, child: _buildCourseList()),
                   ],
                 ),
               ),
@@ -147,22 +165,47 @@ class _HomeScreenState extends State<HomeScreen> {
           final selected = _selectedStatus == tab.$1;
           return GestureDetector(
             onTap: () => setState(() => _selectedStatus = tab.$1),
-            child: Container(
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 250),
+              curve: Curves.easeOutCubic,
               padding: .symmetric(horizontal: 16, vertical: 10),
               decoration: BoxDecoration(
                 color: selected ? AppColors.primaryColor : AppColors.cardColor,
                 borderRadius: .circular(24),
                 border: selected ? null : .all(color: AppColors.borderColor),
               ),
-              child: Text(
-                tab.$2,
+              child: AnimatedDefaultTextStyle(
+                duration: const Duration(milliseconds: 250),
+                curve: Curves.easeOutCubic,
                 style: selected
                     ? AppTextStyles.labelMedium.copyWith(color: AppColors.blackColor, fontWeight: .w700)
                     : AppTextStyles.labelMedium.copyWith(color: AppColors.secondaryTextColor),
+                child: Text(tab.$2),
               ),
             ),
           );
         }).toList(),
+      ),
+    );
+  }
+
+  Widget _buildCourseList() {
+    final courses = _filteredCourses;
+    return AnimatedSwitcher(
+      duration: const Duration(milliseconds: 280),
+      switchInCurve: Curves.easeOutCubic,
+      switchOutCurve: Curves.easeInCubic,
+      transitionBuilder: (child, animation) => FadeTransition(
+        opacity: animation,
+        child: SlideTransition(
+          position: Tween(begin: const Offset(0, 0.06), end: Offset.zero).animate(animation),
+          child: child,
+        ),
+      ),
+      child: Column(
+        key: ValueKey('${_selectedStatus.name}_$_query'),
+        spacing: 12,
+        children: courses.map(_buildCourseCard).toList(),
       ),
     );
   }
@@ -183,9 +226,12 @@ class _HomeScreenState extends State<HomeScreen> {
             spacing: 12,
             crossAxisAlignment: .start,
             children: [
-              ClipRRect(
-                borderRadius: .circular(14),
-                child: Image.asset(course.imageAsset, width: 88, height: 88, fit: .cover,),
+              Hero(
+                tag: 'course-image-${course.id}',
+                child: ClipRRect(
+                  borderRadius: .circular(14),
+                  child: Image.asset(course.imageAsset, width: 88, height: 88, fit: .cover,),
+                ),
               ),
               Expanded(
                 child: Column(
@@ -227,6 +273,29 @@ class _HomeScreenState extends State<HomeScreen> {
         ),
         Text('${(progress * 100).round()}%', style: AppTextStyles.bodySmall,),
       ],
+    );
+  }
+
+  Widget _buildEntrance({
+    required double begin,
+    required double end,
+    required Widget child,
+    double slide = 0,
+  }) {
+    final curved = CurvedAnimation(
+      parent: _controller,
+      curve: Interval(begin, end, curve: Curves.easeOutCubic),
+    );
+    return AnimatedBuilder(
+      animation: curved,
+      builder: (_, child) {
+        final t = curved.value;
+        return Opacity(
+          opacity: t,
+          child: Transform.translate(offset: Offset(0, slide * (1 - t)), child: child),
+        );
+      },
+      child: child,
     );
   }
 }

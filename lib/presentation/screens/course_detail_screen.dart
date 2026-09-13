@@ -72,10 +72,13 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   Widget _buildHero(Course course) {
     return Stack(
       children: [
-        SizedBox(
-          width: double.infinity,
-          height: 260,
-          child: Image.asset(course.imageAsset, fit: .cover,),
+        Hero(
+          tag: 'course-image-${course.id}',
+          child: SizedBox(
+            width: double.infinity,
+            height: 260,
+            child: Image.asset(course.imageAsset, fit: .cover,),
+          ),
         ),
         Positioned(
           top: MediaQuery.paddingOf(context).top + 8,
