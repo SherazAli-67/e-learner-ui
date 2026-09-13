@@ -21,7 +21,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   @override
   void initState() {
     super.initState();
-    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1100));
+    _controller = AnimationController(vsync: this, duration: const Duration(milliseconds: 1500));
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       if (MediaQuery.disableAnimationsOf(context)) {
@@ -58,19 +58,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
               _buildAnimated(
                 begin: 0.45,
                 end: 0.7,
-                slide: 24,
+                slideOffset: const Offset(0, 24),
                 child: Text(StringConst.welcomeHeadline, style: AppTextStyles.headlineLarge, textAlign: .center,),
               ),
               _buildAnimated(
                 begin: 0.55,
                 end: 0.8,
-                slide: 20,
+                slideOffset: const Offset(0, 20),
                 child: Text(StringConst.welcomeSubtitle, style: AppTextStyles.bodyMedium, textAlign: .center,),
               ),
               _buildAnimated(
                 begin: 0.7,
                 end: 1,
-                slide: 16,
+                slideOffset: const Offset(0, 16),
                 child: PrimaryButton(
                   label: StringConst.getStarted,
                   variant: .light,
@@ -114,13 +114,21 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
   Widget _buildCollageTile(String asset, int index) {
     final begin = 0.12 + (index * 0.06);
     final end = (begin + 0.28).clamp(0.0, 1.0);
+    const distance = 40.0;
+    final slideOffset = switch (index) {
+      0 => const Offset(-distance, -distance),
+      1 => const Offset(distance, -distance),
+      2 => const Offset(-distance, distance),
+      _ => const Offset(distance, distance),
+    };
     return _buildAnimated(
       begin: begin,
       end: end,
+      slideOffset: slideOffset,
       scale: true,
       child: ClipRRect(
         borderRadius: .circular(24),
-        child: Image.asset(asset, width: double.infinity, height: double.infinity,),
+        child: Image.asset(asset,width: double.infinity, height: double.infinity,),
       ),
     );
   }
@@ -129,7 +137,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
     required double begin,
     required double end,
     required Widget child,
-    double slide = 0,
+    Offset slideOffset = Offset.zero,
     bool scale = false,
   }) {
     final curved = CurvedAnimation(
@@ -143,7 +151,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> with SingleTickerProvider
         return Opacity(
           opacity: t,
           child: Transform.translate(
-            offset: Offset(0, slide * (1 - t)),
+            offset: Offset(slideOffset.dx * (1 - t), slideOffset.dy * (1 - t)),
             child: scale
                 ? Transform.scale(scale: 0.96 + (0.04 * t), child: child)
                 : child,
